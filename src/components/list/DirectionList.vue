@@ -52,20 +52,24 @@
         :title="`${toggleBtn?'Yangi yo`nalish':'Yo`nalishni tahrirlash'}`">
         <el-form 
             :model="newDirection"
+            ref="ValidateForm"
             label-position="top">
-            <el-form-item label="Yo'nalish nomi">
+            <el-form-item :rules="[
+                    { required: true, message: 'maydonni to`ldiring' },
+                ]"
+                prop="title" label="Yo'nalish nomi">
                 <el-input v-model="newDirection.title" />
             </el-form-item>
             <el-button 
                 v-show="toggleBtn"
                 class="d-center"
-                @click="add"
+                @click="submitForm('ValidateForm', true)"
                 type="success" plain>
                 <el-icon><Select /></el-icon>
                 Kiritish
             </el-button>
             <el-button 
-                @click="save"
+                @click="submitForm('ValidateForm', false)"
                 class="d-center"
                 v-show="!toggleBtn"
                 type="success" plain>
@@ -104,6 +108,20 @@ export default {
         cAt(data){
             let hour = new Date(data)
             return `${hour.getDate(data)}.${hour.getMonth(data)+1}.${hour.getFullYear(data)} ${hour.getHours(data)}:${hour.getMinutes(data)}`
+        },
+        submitForm(formName, add) {
+            this.$refs[formName].validate((valid) => {
+                if (valid) {
+                    if (add) {
+                        this.add()
+                    }else{
+                        this.save()
+                    }
+                } else {
+                    console.log('error submit!!');
+                    return false;
+                }
+            });
         },
         uAt(data){
             let hour = new Date(data)
@@ -157,6 +175,7 @@ export default {
         newAdd(){
             this.toggle = true
             this.toggleBtn = true
+            this.$refs['ValidateForm'].resetFields()
             this.newDirection = {};
         },
     },

@@ -51,14 +51,24 @@
         :title="`${toggleBtn?'Yangi xodim':'Xodim alumotlarini tahrirlash'}`">
         <el-form 
             :model="newWorker"
+            ref="ValidateForm"
             label-position="top">
-            <el-form-item label="Xodim ismi">
+            <el-form-item :rules="[
+                    { required: true, message: 'maydonni to`ldiring' },
+                ]"
+                prop="name" label="Xodim ismi">
                 <el-input v-model="newWorker.name" />
             </el-form-item>
-            <el-form-item label="Tel raqami">
+            <el-form-item :rules="[
+                    { required: true, message: 'maydonni to`ldiring' },
+                ]"
+                prop="phone" label="Tel raqami">
                 <el-input v-model="newWorker.phone" placeholder="+998901234567" v-maska="`+###(##)###-##-##`"/>
             </el-form-item>
-            <el-form-item label="Oylik summasi">
+            <el-form-item :rules="[
+                    { required: true, message: 'maydonni to`ldiring' },
+                ]"
+                prop="salary" label="Oylik summasi">
                 <el-input-number 
                     :min="100000"  
                     :step="100000"
@@ -66,7 +76,10 @@
                     v-model="newWorker.salary"
                     placeholder="1000000"/>
             </el-form-item>
-            <el-form-item label="Lavozimi">
+            <el-form-item :rules="[
+                    { required: true, message: 'maydonni to`ldiring' },
+                ]"
+                prop="who" label="Lavozimi">
                 <el-select v-model="newWorker.who">
                     <el-option
                         v-for="item,i of who"
@@ -77,7 +90,7 @@
             </el-form-item>
             
             <el-button 
-                @click="add"
+                @click="submitForm('ValidateForm', true)"
                 class="d-center"
                 v-show="toggleBtn"
                 type="success" plain>
@@ -85,7 +98,7 @@
                 Saqlash
             </el-button>
             <el-button 
-                @click="save"
+                @click="submitForm('ValidateForm', false)"
                 class="d-center"
                 v-show="!toggleBtn"
                 type="success" plain>
@@ -131,6 +144,20 @@ export default {
                 type: "success"
             })
         },
+        submitForm(formName, add) {
+            this.$refs[formName].validate((valid) => {
+                if (valid) {
+                    if (add) {
+                        this.add()
+                    }else{
+                        this.save()
+                    }
+                } else {
+                    console.log('error submit!!');
+                    return false;
+                }
+            });
+        },
         cancil(){
             this.$message({
                 message: "Bekor qilindi",
@@ -172,6 +199,7 @@ export default {
         newAdd(){
             this.toggle = true
             this.toggleBtn = true
+            this.$refs['ValidateForm'].resetFields()
             this.newWorker = {};
         },
     },

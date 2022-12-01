@@ -10,29 +10,64 @@
     <el-divider/>
 
     <el-table :data="payments">
-        <el-table-column label="O'quvchi">
-            <template #default="scope">
-                {{scope.row.pupil.name}} 
+        <el-table-column type="expand">
+            <template #default="props">
+                <el-table style="width: 90%; margin: auto;" :data="props.row.historysumma" :border="true">
+                    <el-table-column label="Summa" prop="summa" />
+                    <el-table-column label="To'lov sanasi">
+                        <template #default="scope">
+                            {{data(scope.row.data)}}
+                        </template>
+                    </el-table-column>
+                    <el-table-column label="Turi" prop="typepayment" />
+                    <el-table-column label="Comment" prop="comment" />
+                    <el-table-column align="right" width="150">
+                        <template #default="scope">
+                            <el-popconfirm 
+                                title="...qaroringiz qatiymi?"
+                                cancel-button-text="Eee yo'q"
+                                cancel-button-type="success"
+                                confirm-button-text="Voy xaa"
+                                confirm-button-type="danger"
+                                width="200"
+                                @confirm="delHistory(scope.$index, props.row._id)"
+                                @cancel="cancil()">
+                                <template #reference>
+                                    <el-button type="danger">
+                                        <el-icon size="20"><Delete/></el-icon>
+                                    </el-button>
+                                </template>
+                            </el-popconfirm>
+                            
+                        </template>
+                    </el-table-column>
+                </el-table>
             </template>
         </el-table-column>
+        <el-table-column prop="pupil.name" label="O'quvchi"/>
         <el-table-column prop="group.title" label="Guruxi"/>
         <el-table-column label="To'lov summasi">
             <template #default="scope">
-                {{scope.row.historysumma[0].summa}} so'm
+                {{scope.row.historysumma.at(-1).summa}} so'm
             </template>
         </el-table-column>
-        <el-table-column prop="historysumma[0].typepayment" label="To'lov turi"/>
-        <el-table-column prop="historysumma[0].comment" label="Izoh"/>
-        <el-table-column prop="historysumma[0].data" label="To'lov sanasi">
+        <el-table-column label="To'lov turi">
             <template #default="scope">
-                {{data(scope.row.historysumma[0].data)}}
+                {{scope.row.historysumma.at(-1).typepayment}}
+            </template>
+        </el-table-column>
+        <el-table-column label="Izoh">
+            <template #default="scope">
+                {{scope.row.historysumma.at(-1).comment}}
+            </template>
+        </el-table-column>
+        <el-table-column label="To'lov sanasi">
+            <template #default="scope">
+                {{data(scope.row.historysumma.at(-1).data)}}
             </template>
         </el-table-column>
         <el-table-column align="right" width="150">
             <template #default="scope">
-                <el-button type="warning" @click="edit(scope.row._id)">
-                    <el-icon size="20"><EditPen/></el-icon>
-                </el-button>
                 <el-popconfirm 
                     title="...qaroringiz qatiymi?"
                     cancel-button-text="Eee yo'q"
@@ -52,7 +87,6 @@
             </template>
         </el-table-column>
     </el-table>
-    {{payments}}
     
     <el-dialog 
         width="600" 
@@ -61,9 +95,14 @@
         <el-form 
             :model="newPayment"
             ref="ValidateForm"
-            class="demo-ruleForm"
             label-position="left"
             label-width="auto">
+            <el-form-item :rules="[{ required: true, message: 'maydonni to`ldiring' },]" prop="group" label="Guruxi">
+                <el-select v-model="newPayment.group" placeholder="Guruxni tanlang">
+                    <el-option v-for="item,i of groups"
+                        :key="i" :label="item.title" :value="item._id"/>
+                </el-select>
+            </el-form-item>
             <el-form-item 
                 :rules="[
                     { required: true, message: 'maydonni to`ldiring' },
@@ -75,12 +114,6 @@
                         :key="i" :label="item.name" :value="item._id"/>
                 </el-select>
             </el-form-item>
-            <el-form-item label="Guruxi">
-                <el-select v-model="newPayment.group" placeholder="Guruxni tanlang">
-                    <el-option v-for="item,i of groups"
-                        :key="i" :label="item.title" :value="item._id"/>
-                </el-select>
-            </el-form-item>
             <el-form-item 
                 :rules="[
                     { required: true, message: 'maydonni to`ldiring' },
@@ -90,7 +123,7 @@
                 <el-input-number controls-position="right" v-model="newPayment.summa" />
             </el-form-item>
             <el-form-item
-            :rules="[
+                :rules="[
                     { required: true, message: 'maydonni to`ldiring' },
                 ]"
                 prop="data"
@@ -126,7 +159,7 @@
                 v-show="toggleBtn"
                 class="d-center"
                 type="success" plain
-                @click="submitForm('ValidateForm')">
+                @click="submitForm('ValidateForm', true)">
                 <el-icon><Select /></el-icon>
                 Kiritish
             </el-button>
@@ -170,7 +203,7 @@ export default {
             return this.$store.getters.groups
         },
         pupils(){
-            return this.$store.getters.pupils
+            return this.$store.getters.pupils.filter(pupil => pupil.group._id == this.newPayment.group)
         }
     },
     mounted() {
@@ -181,18 +214,29 @@ export default {
             let hour = new Date(data)
             return `${hour.getDate(data)}.${hour.getMonth(data)+1}.${hour.getFullYear(data)}`
         },
-        submitForm(formName) {
-        this.$refs[formName].validate((valid) => {
-            if (valid) {
-                this.add()
-            } else {
-                console.log('error submit!!');
-                return false;
-            }
+        submitForm(formName, add) {
+            this.$refs[formName].validate((valid) => {
+                if (valid) {
+                    if (add) {
+                        this.add()
+                    }else{
+                        this.save()
+                    }
+                } else {
+                    console.log('error submit!!');
+                    return false;
+                }
             });
         },
         del(id){
             this.$store.dispatch("delPayment",id)
+            this.$message({
+                message: "Gurux o'chirildi",
+                type: "success"
+            })
+        },
+        delHistory(index, _id){
+            this.$store.dispatch("delHistory",{index, _id})
             this.$message({
                 message: "Gurux o'chirildi",
                 type: "success"
@@ -229,7 +273,6 @@ export default {
             })
         },
         add() {
-            console.log(this.newPayment);
             this.$store.dispatch("addPayment", this.newPayment);
             this.$message({
                 message: "Yo`nalish qo`shildi",
@@ -241,7 +284,7 @@ export default {
             this.toggle = true
             this.toggleBtn = true
             this.newPayment = {};
-            this.$refs['ValidateForm'].resetFields();
+            this.$refs['ValidateForm'].resetFields()
         },
     },
 }

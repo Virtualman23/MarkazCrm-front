@@ -56,36 +56,37 @@
         :title="`${toggleBtn?'Yangi gurux':'Guruxni tahrirlash'}`">
         <el-form 
             :model="newGroup"
+            ref="ValidateForm"
             label-position="top">
-            <el-form-item label="Gurux nomi">
+            <el-form-item :rules="[{ required: true, message: 'maydonni to`ldiring' },]" prop="title" label="Gurux nomi">
                 <el-input v-model="newGroup.title" />
             </el-form-item>
-            <el-form-item label="Yo'nalish">
+            <el-form-item :rules="[{ required: true, message: 'maydonni to`ldiring' },]" prop="direction" label="Yo'nalish">
                 <el-select v-model="newGroup.direction" placeholder="Yo'nalishni tanlang">
                     <el-option v-for="item,i of directions"
                         :key="i" :label="item.title" :value="item._id"/>
                 </el-select>
             </el-form-item>
-            <el-form-item label="O'qituvchi">
+            <el-form-item :rules="[{ required: true, message: 'maydonni to`ldiring' },]" prop="worker" label="O'qituvchi">
                 <el-select v-model="newGroup.worker" placeholder="O'qituvchinini tanlang">
                     <el-option v-for="item,i of workers"
                         :key="i" :label="item.name" :value="item._id"/>
                 </el-select>
             </el-form-item>
-            <el-form-item label="Kurs narxi">
+            <el-form-item :rules="[{ required: true, message: 'maydonni to`ldiring' },]" prop="price" label="Kurs narxi">
                 <el-input-number controls-position="right" v-model="newGroup.price" />
             </el-form-item>
             <el-button 
                 v-show="toggleBtn"
                 class="d-center"
                 type="success" plain
-                @click="add">
+                @click="submitForm('ValidateForm', true)">
                 <el-icon><Select /></el-icon>
                 Kiritish
             </el-button>
             <el-button 
                 class="d-center"
-                @click="save"
+                @click="submitForm('ValidateForm', false)"
                 type="success" plain
                 v-show="!toggleBtn">
                 <el-icon><Select/></el-icon>
@@ -140,6 +141,20 @@ export default {
                 type: "success"
             })
         },
+        submitForm(formName, add) {
+            this.$refs[formName].validate((valid) => {
+                if (valid) {
+                    if (add) {
+                        this.add()
+                    }else{
+                        this.save()
+                    }
+                } else {
+                    console.log('error submit!!');
+                    return false;
+                }
+            });
+        },
         cancil(){
             this.$message({
                 message: "Bekor qilindi",
@@ -176,12 +191,12 @@ export default {
                 message: "Yo`nalish qo`shildi",
                 type: "success"
             });
-            this.newGroup = {};
             this.toggle = false;
         },
         newAdd(){
             this.toggle = true
             this.toggleBtn = true
+            this.$refs['ValidateForm'].resetFields()
             this.newGroup = {};
         },
     },

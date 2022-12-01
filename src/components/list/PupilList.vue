@@ -44,31 +44,41 @@
         :title="`${toggleBtn?'Yangi o`quvchi':'O`quvchini tahrirlash'}`">
         <el-form 
             :model="newPupil"
+            ref="ValidateForm"
             label-position="top">
-            <el-form-item label="Ismi">
+            <el-form-item :rules="[
+                    { required: true, message: 'maydonni to`ldiring' },
+                ]"
+                prop="name" label="Ismi">
                 <el-input v-model="newPupil.name" />
             </el-form-item>
-            <el-form-item label="Gurux nomi">
+            <el-form-item :rules="[
+                    { required: true, message: 'maydonni to`ldiring' },
+                ]"
+                prop="group" label="Gurux nomi">
                 <el-select v-model="newPupil.group" 
                 placeholder="Guruxni tanlang">
                     <el-option v-for="item,i of groups"
                         :key="i" :label="item.title" :value="item._id"/>
                 </el-select>
             </el-form-item>
-            <el-form-item label="Tel raqami">
+            <el-form-item :rules="[
+                    { required: true, message: 'maydonni to`ldiring' },
+                ]"
+                prop="phone" label="Tel raqami">
                 <el-input v-model="newPupil.phone" placeholder="+998901234567" v-maska="`+###(##)###-##-##`"/>
             </el-form-item>
             <el-button 
                 v-show="toggleBtn"
                 class="d-center"
                 type="success" plain
-                @click="add">
+                @click="submitForm('ValidateForm',true)">
                 <el-icon><Select /></el-icon>
                 Kiritish
             </el-button>
             <el-button 
                 class="d-center"
-                @click="save"
+                @click="submitForm('ValidateForm', false)"
                 type="success" plain
                 v-show="!toggleBtn">
                 <el-icon><Select/></el-icon>
@@ -115,6 +125,20 @@ export default {
                 type: "success"
             })
         },
+        submitForm(formName, add) {
+            this.$refs[formName].validate((valid) => {
+                if (valid) {
+                    if (add) {
+                        this.add()
+                    }else{
+                        this.save()
+                    }
+                } else {
+                    console.log('error submit!!');
+                    return false;
+                }
+            });
+        },
         cancil(){
             this.$message({
                 message: "Bekor qilindi",
@@ -156,6 +180,7 @@ export default {
         newAdd(){
             this.toggle = true
             this.toggleBtn = true
+            this.$refs['ValidateForm'].resetFields()
             this.newPupil = {};
         },
     },

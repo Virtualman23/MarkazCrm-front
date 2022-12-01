@@ -19,7 +19,17 @@ const payment = {
             state.payment = payload
         },
         addPayment(state,payload){
-            state.payments.unshift(payload)
+            let flag = true
+            state.payments = state.payments.map(payment =>{
+                if (payment._id === payload._id) {
+                    flag = false
+                    return payload
+                }
+                return payment
+            })
+            if (flag) {
+                state.payments.unshift(payload)
+            }
         },
         savePayment(state,payload){
             state.payments = state.payments.map(payment => {
@@ -33,6 +43,14 @@ const payment = {
             state.payments = state.payments.filter(payment => {
                 if(payment._id === payload){
                     return false
+                }
+                return payment
+            })
+        },
+        delHistory(state,payload){
+            state.payments = state.payments.map(payment => {
+                if(payment._id === payload._id){
+                    payment.historysumma.splice(payload.index, 1)
                 }
                 return payment
             })
@@ -55,6 +73,14 @@ const payment = {
             .then(res =>{
                 if (res.status === 200) {
                     context.commit('delPayment',payload)
+                }
+            })
+        },
+        delHistory(context,payload){
+            context.dispatch('deleteAxios',`payment/del/${payload._id}/${payload.index}`)
+            .then(res =>{
+                if (res.status === 200) {
+                    context.commit('delHistory',payload)
                 }
             })
         },
