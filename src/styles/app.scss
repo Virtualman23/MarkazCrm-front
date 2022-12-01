@@ -1,0 +1,33 @@
+*{
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500&display=swap');
+
+body{
+    background: #FAFAFA;
+    color: #ADA7A7;
+    font-family: 'Poppins';
+    .el-input__inner::selection {
+        background-color: rgb(135, 201, 255);
+    }
+}
+
+.d-center{
+    span{
+        gap: 5px;
+        display: flex;
+        .el-icon{
+            margin-bottom: 1px;
+        }
+    }
+}
+a{
+    text-decoration: none;
+}
+
+.vh{
+    height: 100vh;
+}
